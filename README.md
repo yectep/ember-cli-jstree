@@ -18,8 +18,8 @@ Run supported actions on the tree by registering it to your controller with the 
 ````Handlebars
 <div class="sample-tree">
     {{ember-jstree
-        actionReceiver=jstreeActionReceiver
         selectedNodes=jstreeSelectedNodes
+        treeObject=jstreeObject
         data=data
         plugins=plugins
         themes=themes
@@ -27,35 +27,23 @@ Run supported actions on the tree by registering it to your controller with the 
         contextmenuOptions=contextmenuOptions
         stateOptions=stateOptions
         typesOptions=typesOptions
-        contextMenuReportClicked="contextMenuReportClicked"
-        eventDidBecomeReady="handleTreeDidBecomeReady"
     }}
 </div>
 ````
 
 ## Event Handling
 
-The addon listens for events from jstree and sends them back to you using actions bound
-to the Handlebars template. Simply set the property to the string name of the action
-in your controller.
+You can pass the `treeObject` (component property) to your controller. This property stores the container for
+your jsTree.
 
-````Handlebars
-{{ember-jstree
-    [...]
-    eventDidChange="handleJstreeEventDidChange"
-}}
+````Javascript
+_attachEvents: function() {
+    var o = this.get('jstreeObject');
+    o.on('select_node.jstree', function(e, data) {
+        console.log(data);
+    }.bind(this));
+}.observes('jstreeObject')
 ````
-
-### Supported events
-
-The following events have basic support included. More are on the way.
-
-| jsTree Event   | Ember Action        |
-|----------------|---------------------|
-| changed.jstree | eventDidChange      |
-| init.jstree    | eventDidInit        |
-| ready.jstree   | eventDidBecomeReady |
-| redraw.jstree  | eventDidRedraw      |
 
 ### Selected nodes
 
@@ -91,7 +79,21 @@ In your **controller**:
 jstreeStateOptionHash: {
     'key': 'ember-cli-jstree-dummy'
 },
-plugins: 'state'
+jstreeMenuOptionHash: {
+    "show_at_node": false,
+    "items" : {
+        "reportClicked": {
+            "label": "Report Clicked",
+            "action": "contextMenuReportClicked"
+        }
+    }             
+},
+plugins: 'state,contextmenu',
+actions: {
+    jstreeMenuReportClicked: function() {
+        this.transitionTo('item.view');
+    }
+}
 ````
 
 In **Handlebars**:
@@ -101,52 +103,25 @@ In **Handlebars**:
     [...]
     plugins=plugins
     stateOptions=jstreeStateOptionHash
+    contextmenuOptions=jstreeMenuOptionHash
+    contextMenuReportClicked="jstreeMenuReportClicked"
 }}
 ````
 
 ## Sending actions to jsTree
 
-The addon component will try to register an `actionReceiver` (see view helper example) to a property in
-your controller if you define it. You can then send actions through that bound property:
+The `treeObject` you map to a controller property of your choice **is** the jsTree container object in the DOM.
+You can send actions to it as specified by the API.
 
 ````Javascript
-this.get('jstreeActionReceiver').send('redraw');
-````
-
-**Note:** Action names in Ember are camelized (e.g.: `get_node()` in jsTree is mapped to `getNode()` in Ember).
-
-If the corresponding jsTree method has a return value, the addon will send an action with the name corresponding
-to supported actions in the table below. Because the addon actually calls these jsTree events, if any events
-occur because of an action, they will be sent as actions (see Event Handling above).
-
-### Supported actions
-
-| jsTree Action     | Ember Action      | Return Action      |
-|-------------------|-------------------|--------------------|
-| destroy           | destroy           |                    |
-| get_container     | getContainer      | actionGetContainer |
-| get_node(id)      | getNode(id)       | actionGetNode      |
-| get_parent(obj)   | getParent(obj)    | actionGetParent    |
-| redraw            | redraw            |                    |
-
-### Receiving return values
-
-In your Handlebars component, map the return action (as above, most of which follow the pattern `action<action name>`):
-
-````Handlebars
-{{ember-jstree
-    [...]
-    actionGetNode="handleJstreeGetNode"
-}}
-````
-
-Any params that jsTree returns will be given in the order specified by its API.
-
-````Javascript
-actionGetNode: function (node) {
-    this.set('someValue', node);
+actions: {
+    toggleNode: function(node) {
+        var o = this.get('jstreeObject');
+        if (null !== node) {
+            o.jstree(true).toggle_node(node);
+        }
+    }
 }
-````
 
 ## Demo
 

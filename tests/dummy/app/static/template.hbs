@@ -1,21 +1,15 @@
 <div class="sample-tree">
     {{ember-jstree
-        actionReceiver=jstreeActionReceiver
         selectedNodes=jstreeSelectedNodes
-        
+        treeObject=jstreeObject
         data=data
         plugins=plugins
         themes=themes
-
         checkboxOptions=checkboxOptions
         contextmenuOptions=contextmenuOptions
         contextMenuReportClicked="contextMenuReportClicked"
         stateOptions=stateOptions
         typesOptions=typesOptions
-
-        eventDidBecomeReady="handleTreeDidBecomeReady"
-
-        actionGetNode="handleGetNode"
     }}
 </div>
 
@@ -39,13 +33,17 @@
 
     <div class="actions">
         <h2>Actions</h2>
+        <button {{action "toggleNode" "rn2"}}>Toggle "Root node 2"</button>
+        <br><br>
         <button {{action "getNode" "rn2"}}>Get "Root node 2"</button>
         <br><br>
-        <button {{action "redraw"}}>Redraw</button>
+        <button {{action "refresh"}}>Refresh</button>
         <br><br>
         <button {{action "destroy"}}>Destroy</button>
         <br><br>
-        <button {{action "addChildByText" "Root node 2"}}>Add child to "Root node 2"</button>
+        <button {{action "addChildByText" "rn2" "Another child node"}}>Add child to "Root node 2"</button>
+        <br><br>
+        <button {{action "addChildByText" "scn" "Another child node"}}>Add child to "Single child node"</button>
     </div>
 
     <div class="buffer">

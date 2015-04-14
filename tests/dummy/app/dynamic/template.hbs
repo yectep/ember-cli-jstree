@@ -2,11 +2,10 @@
     {{ember-jstree
         actionReceiver=jstreeActionReceiver
         selectedNodes=jstreeSelectedNodes
+        treeObject=jstreeObject
         themes=themes
         data=data
         plugins=plugins
-        contextMenuReportClicked="contextMenuReportClicked"
-        eventDidBecomeReady="handleTreeDidBecomeReady"
     }}
 </div>
 
@@ -26,13 +25,6 @@
             {{/each}}
             </ul>
         {{/if}}
-    </div>
-
-    <div class="actions">
-        <h2>Actions</h2>
-        <button {{action "redraw"}}>Redraw</button>
-        <br><br>
-        <button {{action "destroy"}}>Destroy</button>
     </div>
 
 </div>

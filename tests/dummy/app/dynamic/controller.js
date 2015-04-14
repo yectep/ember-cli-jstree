@@ -3,6 +3,8 @@ import Ember from 'ember';
 export default Ember.Controller.extend({
     jstreeActionReceiver: null,
     jstreeSelectedNodes: Ember.A(),
+    jstreeObject: null,
+
     sortedSelectedNodes: Ember.computed.sort('jstreeSelectedNodes', function(a, b) {
         if (a.text > b.text) {
             return 1;
@@ -30,19 +32,23 @@ export default Ember.Controller.extend({
 
     plugins: "wholerow",
     themes: {
-        'name': 'default-dark',
+        'name': 'default',
         'responsive': true
     },
 
+    _attachEvents: function() {
+        var o = this.get('jstreeObject');
+        o.on('select_node.jstree', function(e, data) {
+            console.log(data);
+        }.bind(this));
+
+        o.on('ready.jstree', function() {
+            this.set('treeReady', true);
+        }.bind(this));
+
+    }.observes('jstreeObject'),
+
     actions: {
-
-        redraw: function() {
-            this.get('jstreeActionReceiver').send('redraw');
-        },
-
-        destroy: function() {
-            this.get('jstreeActionReceiver').send('destroy');
-        },
 
         handleTreeSelectionDidChange: function(data) {
             var selected = this.get('jsTreeActionReceiver').send('getSelected');
@@ -51,24 +57,6 @@ export default Ember.Controller.extend({
         contextMenuReportClicked: function(node, tree) {
             var self = this;
             this.set('lastItemClicked', '"Report" item for node: <' + node.text + '> was clicked.');
-        },
-
-        addChildByText: function(nodeTextName) {
-            if (typeof nodeTextName !== 'string') {
-                return;
-            }
-
-            var data = this.get('data');
-            data.forEach(function(node, index) {
-                if (typeof node === 'object' && node["text"] === nodeTextName) {
-                    data[index].children.push('added child');
-                }
-            });
-            this.set(data);
-        },
-
-        handleTreeDidBecomeReady: function() {
-            this.set('treeReady', true);
         }
     }
     

@@ -112,47 +112,11 @@ export default Ember.Component.extend(InboundActions, {
         var treeObject = this.$().jstree(configObject);
 
         /**
-            Register all sorts of events
-            TODO: This should eventually encompass all of the jsTree events declared
-              in their API.
-        */
-
-        /**
-            Event: init.jstree
-            Action: jstreeDidInit
-            triggered after all events are bound
-        **/
-        treeObject.on('init.jstree', function() {
-            this.sendAction('eventDidInit');
-        }.bind(this));
-
-        /**
-            Event: ready.jstree
-            Action: jstreeDidBecomeReady
-            triggered after all nodes are finished loading
-        **/
-        treeObject.on('ready.jstree', function() {
-            this.sendAction('eventDidBecomeReady');
-        }.bind(this));
-
-        /**
-            Event: redraw.jstree
-            Action: jstreeDidRedraw
-            triggered after nodes are redrawn
-        **/
-        treeObject.on('redraw.jstree', function() {
-            this.sendAction('eventDidRedraw');
-        }.bind(this));
-
-        /**
             Event: changed.jstree
-            Action: jstreeDidChange
+            Action: eventDidChange
             triggered when selection changes
         **/
         treeObject.on('changed.jstree', function (e, data) {
-            this.sendAction('eventDidChange', data);
-
-            // Check if selection changed
             var selectionChangedEventNames = ["model", "select_node", "deselect_node", "select_all", "deselect_all"];
             if (data.action && selectionChangedEventNames.indexOf(data.action) !== -1) {
                 var selNodes = Ember.A(this.get('treeObject').jstree(true).get_selected(true));
@@ -160,70 +124,16 @@ export default Ember.Component.extend(InboundActions, {
             }
         }.bind(this));
 
-        
 
         this.set('treeObject', treeObject);
     },
 
-    willDestroyElement: function() {
-
-    },
-
-    getTree: function() {
-        var o = this.get('treeObject');
-        return o.jstree(true);
-    },
-
     actions: {
-
-        redraw: function() {
-            var o = this.get('treeObject');
-            var t = o.jstree(true);
-            if (null !== t) {
-                t.settings.core['data'] = this.get('data');
-                t.refresh();
-            }
-        },
-
-        destroy: function() {
-            var o = this.get('treeObject');
-            if (null !== o) {
-                o.jstree(true).destroy();
-            }
-        },
-
-        getNode: function(nodeId) {
-            if (typeof nodeId !== "string") {
-                throw new Error('getNode() requires a node ID to be passed to it to return the node!');
-            } 
-
-            var o = this.get('treeObject');
-            if (null !== o) {
-                this.sendAction('actionGetNode', o.jstree(true).get_node(nodeId));
-            }
-        },
-
-        getContainer: function() {
-            var o = this.get('treeObject');
-            if (null !== o) {
-                this.sendAction('actionGetContainer', o.jstree(true).get_container());
-            }
-        },
-
-        getParent: function(obj) {
-            obj = obj || "#";
-            var o = this.get('treeObject');
-            if (null !== o) {
-                this.sendAction('actionGetParent', o.jstree(true).get_parent(obj));
-            }
-        },
-
         contextmenuItemDidClick: function(actionName, node) {
-            var tree = this.get('getTree');
+            var t = this.get('treeObject');
             if (undefined !== actionName) {
-                this.sendAction(actionName, node, tree);
+                this.sendAction(actionName, node, t.jstree(true));
             }
         }
     }
-
 });

@@ -19,6 +19,7 @@ export default Ember.Controller.extend({
     data: [
         'Simple root node',
         {
+            'id': 'scn',
             'text': 'Single child node',
             'type': 'single-child',
             'children': [
@@ -72,6 +73,18 @@ export default Ember.Controller.extend({
         }             
     },
 
+    _attachEvents: function() {
+        var o = this.get('jstreeObject');
+        o.on('select_node.jstree', function(e, data) {
+            console.log(data);
+        }.bind(this));
+
+        o.on('ready.jstree', function() {
+            this.set('treeReady', true);
+        }.bind(this));
+
+    }.observes('jstreeObject'),
+
     _jsonifyBuffer: function() {
         var b = this.get('jstreeBuffer');
 
@@ -84,16 +97,23 @@ export default Ember.Controller.extend({
 
     actions: {
 
-        redraw: function() {
-            this.get('jstreeActionReceiver').send('redraw');
+        toggleNode: function(node) {
+            var o = this.get('jstreeObject');
+            if (null !== node) {
+                o.jstree(true).toggle_node(node);
+            }
+        },
+
+        refresh: function() {
+            this.get('jstreeObject').jstree(true).refresh();
         },
 
         destroy: function() {
-            this.get('jstreeActionReceiver').send('destroy');
+            this.get('jstreeObject').jstree(true).destroy();
         },
 
         getNode: function(nodeId) {
-            this.get('jstreeActionReceiver').send('getNode', nodeId);
+            this.set('jstreeBuffer', this.get('jstreeObject').jstree(true).get_node(nodeId));
         },
 
         handleGetNode: function(node) {
@@ -105,23 +125,19 @@ export default Ember.Controller.extend({
             this.set('lastItemClicked', '"Report" item for node: <' + node.text + '> was clicked.');
         },
 
-        addChildByText: function(nodeTextName) {
-            if (typeof nodeTextName !== 'string') {
-                return;
+        addChildByText: function(parentNode, nodeTitle) {
+            if (typeof nodeTitle !== 'string') {
+                nodeTitle = '';
             }
 
-            var data = this.get('data');
-            data.forEach(function(node, index) {
-                if (typeof node === 'object' && node["text"] === nodeTextName) {
-                    data[index].children.push('added child');
-                }
+            var o = this.get('jstreeObject');
+            var self = this;
+            var newNodeId = o.jstree(true).create_node(parentNode, nodeTitle, 'last', function(newNode) {
+                self.set('jstreeBuffer', {
+                    'msg': 'Node created',
+                    'node': newNode
+                });
             });
-            this.set(data);
-            this.send('redraw');
-        },
-
-        handleTreeDidBecomeReady: function() {
-            this.set('treeReady', true);
         }
     }
     
